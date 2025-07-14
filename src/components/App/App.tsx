@@ -1,6 +1,6 @@
 import ReactPaginate from "react-paginate";
 import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import ErrorMessage from "../ErrorMessage/ErrorMessage";
 import Loader from "../Loader/Loader";
 import MovieGrid from "../MovieGrid/MovieGrid";
@@ -20,14 +20,11 @@ export default function App() {
 
   const hasSearchQuery = query.trim() !== "";
 
-  const { data, isPending, isError } = useQuery<MoviesResponse, Error>({
+  const { data, isPending, isError, isSuccess } = useQuery<MoviesResponse, Error>({
     queryKey: ["movies", query, page],
     queryFn: () => fetchMovies(query, page),
     enabled: hasSearchQuery,
-    placeholderData: () => ({
-      results: [],
-      total_pages: 0,
-    }),
+    keepPreviousData: true,
   });
 
   const handleSearch = (value: string) => {
@@ -40,6 +37,18 @@ export default function App() {
     setPage(1);
   };
 
+  useEffect(() => {
+    if (
+      hasSearchQuery &&
+      data &&
+      data.results.length === 0 &&
+      !isPending &&
+      !isError
+    ) {
+      toast("No movies found.");
+    }
+  }, [data, isPending, isError, hasSearchQuery]);
+
   return (
     <>
       <SearchBar onSubmit={handleSearch} />
@@ -47,7 +56,7 @@ export default function App() {
       {hasSearchQuery && isPending && <Loader />}
       {hasSearchQuery && isError && <ErrorMessage />}
 
-      {data && data.results.length > 0 && (
+      {isSuccess && data.results.length > 0 && (
         <>
           <MovieGrid movies={data.results} onSelect={setSelectedMovie} />
           {data.total_pages > 1 && (
