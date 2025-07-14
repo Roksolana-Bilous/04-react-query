@@ -1,5 +1,5 @@
 import ReactPaginate from "react-paginate";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import ErrorMessage from "../ErrorMessage/ErrorMessage";
 import Loader from "../Loader/Loader";
@@ -24,7 +24,7 @@ export default function App() {
     queryKey: ["movies", query, page],
     queryFn: () => fetchMovies(query, page),
     enabled: hasSearchQuery,
-    keepPreviousData: true,
+    placeholderData: keepPreviousData,
   });
 
   const handleSearch = (value: string) => {
